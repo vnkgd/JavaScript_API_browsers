@@ -1,0 +1,95 @@
+<!-- Цель: Разработать веб-приложение, которое каждый день будет отображать новое случайное изображение из коллекции Unsplash, давая пользователю возможность узнать больше о фотографе и сделать "лайк" изображению.
+Регистрация на Unsplash:
+• Перейдите на веб-сайт Unsplash (https://unsplash.com/).
+• Зарегистрируйтесь или войдите в свой аккаунт. (если у вас не было регистрации до этого, новый аккаунт создавать не нужно).
+Создание приложения:
+• Перейдите на страницу разработчика Unsplash (https://unsplash.com/developers).
+• Нажмите "New Application".
+• Заполните необходимую информацию о приложении (можете использовать http://localhost для тестирования).
+• Получите свой API-ключ после создания приложения.
+Разработка веб-приложения:
+• Создайте HTML-страницу с элементами: изображение, имя фотографа, кнопка "лайк" и счетчик лайков.
+• Используя JavaScript и ваш API-ключ, получите случайное изображение из Unsplash каждый раз, когда пользователь загружает страницу.
+• Отобразите информацию о фотографе под изображением.
+• Реализуйте функционал "лайка". Каждый раз, когда пользователь нажимает кнопку "лайк", счетчик должен увеличиваться на единицу.
+* Дополнительные задачи (по желанию):
+• Добавьте функцию сохранения количества лайков в локальное хранилище, чтобы при новой загрузке страницы счетчик не сбрасывался.
+• Реализуйте возможность просмотра предыдущих "фото дня" с сохранением их в истории просмотров. -->
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Случайное фото из Unsplash</title>
+    <style>
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <img id="photo" src="" alt="Random Photo">
+    <p id="photographer"></p>
+    <button id="likeBtn">Like</button>
+    <span id="likeCount">0</span>
+    <div id="history"></div>
+
+    <script>
+        const accessKey = 'N_ckqo5RS4uZkA-fBdZbH19kn4XtDUN9GGoUF7Euzd0';
+        const photoElement = document.getElementById('photo');
+        const photographerElement = document.getElementById('photographer');
+        const likeBtnElement = document.getElementById('likeBtn');
+        const likeCountElement = document.getElementById('likeCount');
+        const historyElement = document.getElementById('history');
+
+        let likes = parseInt(localStorage.getItem('likes')) || 0;
+        let history = JSON.parse(localStorage.getItem('history')) || [];
+
+        likeCountElement.textContent = likes;
+
+        function fetchRandomPhoto() {
+            fetch(`https://api.unsplash.com/photos/random?client_id=${accessKey}`)
+                .then(response => response.json())
+                .then(data => {
+                    photoElement.src = data.urls.regular;
+                    photographerElement.textContent = `Photographer: ${data.user.name}`;
+                    history.push(data);
+                    localStorage.setItem('history', JSON.stringify(history));
+                    updateHistory();
+                })
+                .catch(error => console.error(error));
+        }
+
+        function updateHistory() {
+            historyElement.innerHTML = '';
+            history.forEach((photo, index) => {
+                const img = document.createElement('img');
+                img.src = photo.urls.thumb;
+                img.alt = `Photo ${index + 1}`;
+                img.style.maxWidth = '100px';
+                img.style.cursor = 'pointer';
+                img.onclick = () => showPhoto(index);
+                historyElement.appendChild(img);
+            });
+        }
+
+        function showPhoto(index) {
+            const photo = history[index];
+            photoElement.src = photo.urls.regular;
+            photographerElement.textContent = `Photographer: ${photo.user.name}`;
+        }
+
+        likeBtnElement.addEventListener('click', () => {
+            likes++;
+            likeCountElement.textContent = likes;
+            localStorage.setItem('likes', likes);
+        });
+
+        fetchRandomPhoto();
+    </script>
+</body>
+
+</html>

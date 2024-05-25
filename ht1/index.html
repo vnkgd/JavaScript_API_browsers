@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание спортивных занятий</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Расписание спортивных занятий</h1>
+        <div class="text-center mb-4">
+            <button id="clearStorage" class="btn btn-danger">Очистить LocalStorage</button>
+        </div>
+        <div id="schedule" class="row mb-4">
+            <!-- Занятия будут добавлены здесь -->
+        </div>
+        <h2 class="text-center mb-4">Записавшиеся участники</h2>
+        <ul id="participants" class="list-group">
+            <!-- Записавшиеся участники будут добавлены здесь -->
+        </ul>
+    </div>
+
+    <script>
+        const scheduleData = [
+            { name: 'Йога', time: '9:00', maxParticipants: 2 },
+            { name: 'Пилатес', time: '11:00', maxParticipants: 2 },
+            { name: 'Кардио', time: '13:00', maxParticipants: 2 },
+            { name: 'Силовая тренировка', time: '15:00', maxParticipants: 10 }
+        ];
+
+        const scheduleContainer = document.getElementById('schedule');
+        const participantsContainer = document.getElementById('participants');
+        const clearStorageButton = document.getElementById('clearStorage');
+
+        const loadSchedule = () => {
+            const storedSchedule = JSON.parse(localStorage.getItem('schedule')) || scheduleData;
+            storedSchedule.forEach(renderClass);
+            renderParticipants(storedSchedule);
+        };
+
+        const renderClass = (classData) => {
+            const classDiv = document.createElement('div');
+            classDiv.classList.add('col-md-6', 'mb-4');
+
+            const card = document.createElement('div');
+            card.classList.add('card');
+
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            const cardTitle = document.createElement('h5');
+            cardTitle.classList.add('card-title');
+            cardTitle.textContent = classData.name;
+
+            const storedParticipants = JSON.parse(localStorage.getItem(classData.name)) || [];
+            const currentParticipants = storedParticipants.length;
+
+            const cardText = document.createElement('p');
+            cardText.classList.add('card-text');
+            cardText.innerHTML = `Время: ${classData.time}<br>Максимальное количество участников: ${classData.maxParticipants}<br>Текущее количество участников: ${currentParticipants}`;
+
+            const joinButton = document.createElement('button');
+            joinButton.classList.add('btn', 'btn-primary');
+            joinButton.textContent = currentParticipants >= classData.maxParticipants ? 'Запись закончена' : 'Записаться';
+            joinButton.disabled = currentParticipants >= classData.maxParticipants;
+            joinButton.addEventListener('click', () => joinClass(classData));
+
+            cardBody.appendChild(cardTitle);
+            cardBody.appendChild(cardText);
+            cardBody.appendChild(joinButton);
+            card.appendChild(cardBody);
+            classDiv.appendChild(card);
+            scheduleContainer.appendChild(classDiv);
+        };
+
+        const joinClass = (classData) => {
+            const storedParticipants = JSON.parse(localStorage.getItem(classData.name)) || [];
+            if (storedParticipants.length < classData.maxParticipants) {
+                const name = prompt('Введите ваше имя:');
+                if (name) {
+                    storedParticipants.push(name);
+                    localStorage.setItem(classData.name, JSON.stringify(storedParticipants));
+                    renderSchedule();
+                }
+            } else {
+                alert('Запись закончена');
+            }
+        };
+
+        const leaveClass = (classData, participant) => {
+            const storedParticipants = JSON.parse(localStorage.getItem(classData.name)) || [];
+            const index = storedParticipants.indexOf(participant);
+            if (index !== -1) {
+                storedParticipants.splice(index, 1);
+                localStorage.setItem(classData.name, JSON.stringify(storedParticipants));
+                renderSchedule();
+            }
+        };
+
+        const renderParticipants = (schedule) => {
+            participantsContainer.innerHTML = '';
+            schedule.forEach(classData => {
+                const storedParticipants = JSON.parse(localStorage.getItem(classData.name)) || [];
+                storedParticipants.forEach(participant => {
+                    const participantLi = document.createElement('li');
+                    participantLi.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                    participantLi.textContent = `${participant} - ${classData.name}`;
+
+                    const leaveButton = document.createElement('button');
+                    leaveButton.classList.add('btn', 'btn-danger');
+                    leaveButton.textContent = 'Отменить запись';
+                    leaveButton.addEventListener('click', () => leaveClass(classData, participant));
+
+                    participantLi.appendChild(leaveButton);
+                    participantsContainer.appendChild(participantLi);
+                });
+            });
+        };
+
+        const renderSchedule = () => {
+            scheduleContainer.innerHTML = '';
+            const storedSchedule = JSON.parse(localStorage.getItem('schedule')) || scheduleData;
+            storedSchedule.forEach(renderClass);
+            renderParticipants(storedSchedule);
+        };
+
+        const clearStorage = () => {
+            localStorage.clear();
+            renderSchedule();
+        };
+
+        clearStorageButton.addEventListener('click', clearStorage);
+
+        loadSchedule();
+    </script>
+</body>
+
+</html>

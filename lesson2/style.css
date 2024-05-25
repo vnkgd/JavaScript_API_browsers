@@ -1,0 +1,23 @@
+content {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.35 ease;
+
+}
+
+.visible {
+    opacity: 1;
+    max-height: 500px;
+    /* Высота контента при отображении */
+    transition: all 0.35 ease;
+
+}
+
+.content {
+    display: none;
+}
+
+.content.visible {
+    display: block;
+}
